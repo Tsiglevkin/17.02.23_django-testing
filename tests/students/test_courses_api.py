@@ -1,6 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django_testing import settings
 from rest_framework.test import APIClient
 from model_bakery import baker
 
@@ -136,4 +137,27 @@ def test_delete_course(user, client, courses_factory):
     next_count = Course.objects.count()
 
     assert next_count == count - 1
+
+
+
+### Доп. задание.
+# @pytest.fixture
+# def students_quantity():
+#     return settings.MAX_STUDENTS_PER_COURSE
+#
+#
+# @pytest.mark.parametrize(
+#     ['students', 'expected_status'],
+#     (
+#         ('25', 400),
+#         ('10', 200),
+#     )
+# )
+# @pytest.markdjango_db
+# def test_students_quantity(client, students, expected_status):
+#     url = reverse('courses-list')
+#     create_data = {''}
+#
+#     response = client.post()
+
 

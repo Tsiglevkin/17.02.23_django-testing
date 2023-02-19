@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Student(models.Model):
@@ -17,4 +18,5 @@ class Course(models.Model):
     students = models.ManyToManyField(
         Student,
         blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)]
     )
