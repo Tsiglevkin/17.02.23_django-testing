@@ -33,23 +33,25 @@ def students_factory():
 
 @pytest.mark.django_db
 def test_get_one_course(user, client, courses_factory):
-    course = courses_factory(_quantity=1)
+    course = courses_factory(_quantity=5)  # изменил количество курсов
+    course_id = course[0].pk  # взял значение первого для проверки.
 
-    response = client.get('/api/v1/courses/')
+    url = f"{reverse('courses-list')}{course_id}/"
+    response = client.get(url)
 
     assert response.status_code == 200
 
-    data = response.json()
-    request_course = data[0].get('name')
+    response_data = response.json()
+    response_course_name = response_data.get('name')
 
-    assert request_course == course[0].name
+    assert response_course_name == course[0].name
 
 
 @pytest.mark.django_db
 def test_get_a_few_courses(user, client, courses_factory):
     courses = courses_factory(_quantity=10)
-
-    response = client.get('/api/v1/courses/')
+    url = reverse('courses-list')
+    response = client.get(url)
     assert response.status_code == 200
 
     courses_list = response.json()
@@ -61,30 +63,42 @@ def test_get_a_few_courses(user, client, courses_factory):
 @pytest.mark.django_db
 def test_check_id_filter(user, client, courses_factory):
     courses = courses_factory(_quantity=10)
+    course_id = courses[0].pk
 
-    response = client.get('/api/v1/courses/1/')
+    # url = f"{reverse('courses-list')}{course_id}/"
+    filter_data = {'pk': course_id}
+    url = reverse('courses-list')
+
+    response = client.get(url, data=filter_data)
 
     assert response.status_code == 200
 
     data = response.json()
-    assert data.get('id') == courses[0].pk  # почему-то не видит атрибута id, поэтому pk.
+    assert data[0].get('id') == courses[0].pk  # почему-то не видит атрибута id, поэтому pk.
 
 
 @pytest.mark.django_db
 def test_check_name_filter(user, client, courses_factory):
     courses = courses_factory(_quantity=10)
+    course_id = courses[0].pk
+    course_name = courses[0].name
+    filter_data = {
+        'id': course_id,
+        'name': course_name,
+    }
 
-    response = client.get(f'/api/v1/courses/1/?name={courses[0].name}')
+    url = reverse('courses-list')
+    response = client.get(url, data=filter_data)
 
     assert response.status_code == 200
 
     data = response.json()
-    assert data.get('name') == courses[0].name
+    assert data[0].get('name') == courses[0].name
 
 
 @pytest.mark.django_db
 def test_create_course(client, user):
-    data = {'name': 'python-разработчик'}  #  данные для создания модели
+    data = {'name': 'python-разработчик'}  # данные для создания модели
     response = client.post(
         path='/api/v1/courses/',
         data=data,

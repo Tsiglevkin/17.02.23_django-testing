@@ -131,4 +131,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'TEST_REQUEST-DEFAULT-FORMAT': 'json',
+    'MAX_STUDENTS_PER_COURSE': 20
 }
