@@ -22,6 +22,7 @@ def user():
 def courses_factory():
     def factory(*args, **kwargs):
         return baker.make(Course, *args, **kwargs)
+
     return factory
 
 
@@ -29,6 +30,7 @@ def courses_factory():
 def students_factory():
     def factory(*args, **kwargs):
         return baker.make(Student, *args, **kwargs)
+
     return factory
 
 
@@ -37,7 +39,8 @@ def test_get_one_course(user, client, courses_factory):
     course = courses_factory(_quantity=5)  # изменил количество курсов
     course_id = course[0].pk  # взял значение первого для проверки.
 
-    url = f"{reverse('courses-list')}{course_id}/"
+    # url = f"{reverse('courses-list')}{course_id}/"  # мое написание
+    url = reverse('courses-detail', args=[course_id])  # совет преподавателя.
     response = client.get(url)
 
     assert response.status_code == 200
@@ -139,25 +142,30 @@ def test_delete_course(user, client, courses_factory):
     assert next_count == count - 1
 
 
+# Доп. задание.
 
-### Доп. задание.
-# @pytest.fixture
-# def students_quantity():
-#     return settings.MAX_STUDENTS_PER_COURSE
-#
-#
-# @pytest.mark.parametrize(
-#     ['students', 'expected_status'],
-#     (
-#         ('25', 400),
-#         ('10', 200),
-#     )
-# )
-# @pytest.markdjango_db
-# def test_students_quantity(client, students, expected_status):
-#     url = reverse('courses-list')
-#     create_data = {''}
-#
-#     response = client.post()
+@pytest.fixture
+def students_quantity():
+    return settings.MAX_STUDENTS_PER_COURSE
 
 
+@pytest.mark.parametrize(
+    ['students_count', 'expected_status'],
+    (
+            (25, 400),
+            (10, 201),
+    )
+)
+@pytest.mark.django_db
+def test_students_quantity(client, students_count, expected_status, students_factory):
+    # создаем одного студента, умножаем его id на нужное количество и проверяем
+
+    student = students_factory(_quantity=1)
+    students_list = [student[0].pk] * students_count  # список id, по которым идет проверка по количеству.
+    url = reverse('courses-list')
+    response_data = {
+        'name': 'python',
+        'students': students_list
+    }  # данные для создания одного курса
+    response = client.post(url, data=response_data)
+    assert response.status_code == expected_status
